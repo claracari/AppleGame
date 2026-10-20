@@ -1,0 +1,119 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 400px;
+    height: 750px;
+    background-color: #f5f6fa;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #2f3640;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+#game-area {
+    position: relative;
+    width: 100%;
+    height: 685px;
+    background: linear-gradient(to bottom, #81ecec, #55efc4);
+    overflow: hidden;
+}
+
+#player {
+    position: absolute;
+    bottom: 20px;
+    left: 175px;
+    width: 60px;
+    height: 50px;
+    font-size: 2.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+}
+
+.apple {
+    position: absolute;
+    font-size: 1.8rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 10;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay h1 {
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+    color: #ff7675;
+}
+
+.overlay p {
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+button {
+    background-color: #00b894;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #55efc4;
+    transform: scale(1.05);
+}

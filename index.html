@@ -18,7 +18,13 @@
         <!-- Start Screen Overlay -->
         <div id="start-screen" class="overlay">
             <h1>🍎 Apple Catcher! 🍎</h1>
-            <p>Use the <strong>Left/Right Arrow keys</strong> or move your mouse to catch the falling apples. Don't let them hit the ground!</p>
+            <p>
+                Use the <strong>Left/Right Arrow keys</strong> or move your mouse to catch:<br>
+                🍎 Red Apples = 10 pts<br>
+                🌟 Golden Apples = 50 pts<br>
+                ❤️ Hearts = +1 Life<br>
+                ⚠️ Green Apples = Lose a life!
+            </p>
             <button id="start-btn">Start Game</button>
         </div>
 
@@ -31,14 +37,14 @@
 
         <!-- Playing Area -->
         <div id="game-area">
-            <!-- Player Basket / Person -->
-            <div id="basket">🧺</div>
+            <!-- Player / Person -->
+            <div id="player">🧑</div>
         </div>
     </div>
 
     <script>
         const gameArea = document.getElementById('game-area');
-        const basket = document.getElementById('basket');
+        const player = document.getElementById('player');
         const scoreDisplay = document.getElementById('score');
         const livesDisplay = document.getElementById('lives');
         const startScreen = document.getElementById('start-screen');
@@ -52,11 +58,12 @@
         let gameInterval;
         let appleInterval;
         let isPlaying = false;
-        let basketX = 175; // Initial basket position
+        let playerX = 175;
         const gameWidth = 400;
-        const basketWidth = 60;
+        const playerWidth = 60;
+        const gameHeight = 680;
 
-        // Basket movement controls
+        // Movement controls
         let keys = { ArrowLeft: false, ArrowRight: false };
 
         window.addEventListener('keydown', (e) => {
@@ -71,74 +78,89 @@
         gameArea.addEventListener('mousemove', (e) => {
             if (!isPlaying) return;
             const rect = gameArea.getBoundingClientRect();
-            basketX = e.clientX - rect.left - basketWidth / 2;
-            if (basketX < 0) basketX = 0;
-            if (basketX > gameWidth - basketWidth) basketX = gameWidth - basketWidth;
-            basket.style.left = basketX + 'px';
+            playerX = e.clientX - rect.left - playerWidth / 2;
+            if (playerX < 0) playerX = 0;
+            if (playerX > gameWidth - playerWidth) playerX = gameWidth - playerWidth;
+            player.style.left = playerX + 'px';
         });
 
         startBtn.addEventListener('click', startGame);
         restartBtn.addEventListener('click', startGame);
 
         function startGame() {
-            // Reset state
             score = 0;
             lives = 3;
             scoreDisplay.textContent = score;
             livesDisplay.textContent = lives;
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
-
-            // Clear existing apples
+            
             document.querySelectorAll('.apple').forEach(apple => apple.remove());
 
             isPlaying = true;
-            basketX = 175;
+            playerX = 175;
 
-            // Start loops
             gameInterval = setInterval(updateGame, 20);
-            appleInterval = setInterval(spawnApple, 800);
+            appleInterval = setInterval(spawnApple, 750);
         }
 
         function updateGame() {
             // Handle keyboard movement
-            if (keys.ArrowLeft && basketX > 0) {
-                basketX -= 7;
+            if (keys.ArrowLeft && playerX > 0) {
+                playerX -= 8;
             }
-            if (keys.ArrowRight && basketX < gameWidth - basketWidth) {
-                basketX += 7;
+            if (keys.ArrowRight && playerX < gameWidth - playerWidth) {
+                playerX += 8;
             }
-            basket.style.left = basketX + 'px';
+            player.style.left = playerX + 'px';
 
-            // Move apples down
+            // Move items down
             const apples = document.querySelectorAll('.apple');
             apples.forEach(apple => {
                 let appleY = parseFloat(apple.dataset.y);
-                appleY += 3.5; // Fall speed
+                appleY += 3.2; // Fall speed
                 apple.dataset.y = appleY;
                 apple.style.top = appleY + 'px';
 
-                // Check collision with basket
+                // Collision detection with player
                 let appleRect = apple.getBoundingClientRect();
-                let basketRect = basket.getBoundingClientRect();
+                let playerRect = player.getBoundingClientRect();
 
                 if (
-                    appleRect.bottom >= basketRect.top &&
-                    appleRect.top <= basketRect.bottom &&
-                    appleRect.right >= basketRect.left &&
-                    appleRect.left <= basketRect.right
+                    appleRect.bottom >= playerRect.top &&
+                    appleRect.top <= playerRect.bottom &&
+                    appleRect.right >= playerRect.left &&
+                    appleRect.left <= playerRect.right
                 ) {
-                    score += 10;
+                    const type = apple.dataset.type;
+                    if (type === 'red') {
+                        score += 10;
+                    } else if (type === 'gold') {
+                        score += 50;
+                    } else if (type === 'heart') {
+                        if (lives < 5) lives++; // Cap max lives at 5
+                    } else if (type === 'poison') {
+                        lives--;
+                    }
+
                     scoreDisplay.textContent = score;
-                    apple.remove();
-                }
-                // Check if apple hit the ground
-                else if (appleY > 550) {
-                    apple.remove();
-                    lives--;
                     livesDisplay.textContent = lives;
+                    apple.remove();
+
                     if (lives <= 0) {
                         endGame();
+                    }
+                } 
+                // Check if item hit the ground
+                else if (appleY > gameHeight) {
+                    apple.remove();
+                    // Only lose a life if a normal red apple hits the ground
+                    if (apple.dataset.type === 'red') {
+                        lives--;
+                        livesDisplay.textContent = lives;
+                        if (lives <= 0) {
+                            endGame();
+                        }
                     }
                 }
             });
@@ -148,9 +170,26 @@
             if (!isPlaying) return;
             const apple = document.createElement('div');
             apple.classList.add('apple');
-            apple.textContent = '🍎';
+            
+            // Random chance for different item types
+            const rand = Math.random();
+            let type = 'red';
+            let icon = '🍎';
 
-            // Random horizontal position
+            if (rand < 0.12) {
+                type = 'gold';
+                icon = '🌟'; // Golden apple
+            } else if (rand < 0.22) {
+                type = 'heart';
+                icon = '❤️'; // Extra life heart
+            } else if (rand < 0.35) {
+                type = 'poison';
+                icon = '🍏'; // Green/bad apple
+            }
+
+            apple.textContent = icon;
+            apple.dataset.type = type;
+            
             let randomX = Math.random() * (gameWidth - 40);
             apple.style.left = randomX + 'px';
             apple.style.top = '0px';
