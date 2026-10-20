@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Catcher Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Game Header / Scoreboard -->
+        <div class="scoreboard">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+        </div>
+
+        <!-- Start Screen Overlay -->
+        <div id="start-screen" class="overlay">
+            <h1>🍎 Apple Catcher! 🍎</h1>
+            <p>Use the <strong>Left/Right Arrow keys</strong> or move your mouse to catch the falling apples. Don't let them hit the ground!</p>
+            <button id="start-btn">Start Game</button>
+        </div>
+
+        <!-- Game Over Screen Overlay -->
+        <div id="game-over-screen" class="overlay hidden">
+            <h1>Game Over</h1>
+            <p>Your Final Score: <span id="final-score">0</span></p>
+            <button id="restart-btn">Play Again</button>
+        </div>
+
+        <!-- Playing Area -->
+        <div id="game-area">
+            <!-- Player Basket / Person -->
+            <div id="basket">🧺</div>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const basket = document.getElementById('basket');
+        const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const finalScoreDisplay = document.getElementById('final-score');
+
+        let score = 0;
+        let lives = 3;
+        let gameInterval;
+        let appleInterval;
+        let isPlaying = false;
+        let basketX = 175; // Initial basket position
+        const gameWidth = 400;
+        const basketWidth = 60;
+
+        // Basket movement controls
+        let keys = { ArrowLeft: false, ArrowRight: false };
+
+        window.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.code)) keys[e.code] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.code)) keys[e.code] = false;
+        });
+
+        // Mouse/Touch movement support
+        gameArea.addEventListener('mousemove', (e) => {
+            if (!isPlaying) return;
+            const rect = gameArea.getBoundingClientRect();
+            basketX = e.clientX - rect.left - basketWidth / 2;
+            if (basketX < 0) basketX = 0;
+            if (basketX > gameWidth - basketWidth) basketX = gameWidth - basketWidth;
+            basket.style.left = basketX + 'px';
+        });
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+
+        function startGame() {
+            // Reset state
+            score = 0;
+            lives = 3;
+            scoreDisplay.textContent = score;
+            livesDisplay.textContent = lives;
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+
+            // Clear existing apples
+            document.querySelectorAll('.apple').forEach(apple => apple.remove());
+
+            isPlaying = true;
+            basketX = 175;
+
+            // Start loops
+            gameInterval = setInterval(updateGame, 20);
+            appleInterval = setInterval(spawnApple, 800);
+        }
+
+        function updateGame() {
+            // Handle keyboard movement
+            if (keys.ArrowLeft && basketX > 0) {
+                basketX -= 7;
+            }
+            if (keys.ArrowRight && basketX < gameWidth - basketWidth) {
+                basketX += 7;
+            }
+            basket.style.left = basketX + 'px';
+
+            // Move apples down
+            const apples = document.querySelectorAll('.apple');
+            apples.forEach(apple => {
+                let appleY = parseFloat(apple.dataset.y);
+                appleY += 3.5; // Fall speed
+                apple.dataset.y = appleY;
+                apple.style.top = appleY + 'px';
+
+                // Check collision with basket
+                let appleRect = apple.getBoundingClientRect();
+                let basketRect = basket.getBoundingClientRect();
+
+                if (
+                    appleRect.bottom >= basketRect.top &&
+                    appleRect.top <= basketRect.bottom &&
+                    appleRect.right >= basketRect.left &&
+                    appleRect.left <= basketRect.right
+                ) {
+                    score += 10;
+                    scoreDisplay.textContent = score;
+                    apple.remove();
+                }
+                // Check if apple hit the ground
+                else if (appleY > 550) {
+                    apple.remove();
+                    lives--;
+                    livesDisplay.textContent = lives;
+                    if (lives <= 0) {
+                        endGame();
+                    }
+                }
+            });
+        }
+
+        function spawnApple() {
+            if (!isPlaying) return;
+            const apple = document.createElement('div');
+            apple.classList.add('apple');
+            apple.textContent = '🍎';
+
+            // Random horizontal position
+            let randomX = Math.random() * (gameWidth - 40);
+            apple.style.left = randomX + 'px';
+            apple.style.top = '0px';
+            apple.dataset.y = 0;
+
+            gameArea.appendChild(apple);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            clearInterval(appleInterval);
+            finalScoreDisplay.textContent = score;
+            gameOverScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
